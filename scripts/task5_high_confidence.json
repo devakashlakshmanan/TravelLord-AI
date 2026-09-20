@@ -1,0 +1,68 @@
+{
+  "action": "Turn Back / Divert",
+  "risk_score": 0.9156,
+  "confidence": 0.7952,
+  "controlling_segment": {
+    "segment_id": "S1",
+    "name": "Adivaram to Chooralmala",
+    "hazard_type": "landslide",
+    "source": "GSI susceptibility zone (Modeled)",
+    "severity": 0.85,
+    "base_confidence": 0.8,
+    "trend": "rising",
+    "source_agreement": 0.8,
+    "data_recency": 0.8839,
+    "historical_reliability": 0.7,
+    "confidence": 0.7952,
+    "risk_score": 0.9156,
+    "action_candidate": "Turn Back / Divert"
+  },
+  "segment_scores": [
+    {
+      "segment_id": "S1",
+      "name": "Adivaram to Chooralmala",
+      "hazard_type": "landslide",
+      "source": "GSI susceptibility zone (Modeled)",
+      "severity": 0.85,
+      "base_confidence": 0.8,
+      "trend": "rising",
+      "source_agreement": 0.8,
+      "data_recency": 0.8839,
+      "historical_reliability": 0.7,
+      "confidence": 0.7952,
+      "risk_score": 0.9156,
+      "action_candidate": "Turn Back / Divert"
+    },
+    {
+      "segment_id": "S5",
+      "name": "Lakkidi Viewpoint Curve",
+      "hazard_type": "landslide",
+      "source": "GSI susceptibility zone (Modeled)",
+      "severity": 0.3,
+      "base_confidence": 0.65,
+      "trend": "stable",
+      "source_agreement": 0.65,
+      "data_recency": 0.8839,
+      "historical_reliability": 0.7,
+      "confidence": 0.7352,
+      "risk_score": 0.2603,
+      "action_candidate": "ELEVATED_CAUTION"
+    },
+    {
+      "segment_id": "S3",
+      "name": "Vythiri Ghat Section",
+      "hazard_type": "landslide",
+      "source": "GSI susceptibility zone (Modeled)",
+      "severity": 0.6,
+      "base_confidence": 0.6,
+      "trend": "stable",
+      "source_agreement": 0.6,
+      "data_recency": 0.8839,
+      "historical_reliability": 0.7,
+      "confidence": 0.7152,
+      "risk_score": 0.5146,
+      "action_candidate": "ELEVATED_CAUTION"
+    }
+  ],
+  "valid_until": "2026-09-20T08:32:12.574Z"
+}

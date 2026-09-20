@@ -1,101 +1,72 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Shield, ArrowRight, AlertTriangle, Compass, CheckCircle2, Lock } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 sm:px-6 py-12">
+      <div className="max-w-3xl mx-auto text-center">
+        {/* Corridor Pill */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 text-white text-xs font-semibold mb-6 shadow-sm">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          NH-766 Kozhikode–Wayanad Life-Safety Corridor
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Hero Headline */}
+        <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight sm:leading-none">
+          Zero Guesswork. <br className="hidden sm:inline" />
+          <span className="text-emerald-700">Deterministic Mountain Safety.</span>
+        </h1>
+
+        <p className="mt-4 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+          Traversing the Wayanad ghats requires certainty. TravelLord AI computes a single, verified travel advisory—<span className="font-semibold text-slate-800">Continue, Slow Down, Wait, or Turn Back</span>—with mathematical data integrity.
+        </p>
+
+        {/* Action Buttons */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+          <Link
+            id="hero-signup-btn"
+            href="/signup"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-sm transition"
+          >
+            <span>Plan Safe Transit</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+          <Link
+            id="hero-login-btn"
+            href="/login"
+            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 text-sm font-semibold border border-slate-200 shadow-sm flex items-center justify-center transition"
+          >
+            <span>Sign In</span>
+          </Link>
+        </div>
+
+        {/* Value Prop Badges */}
+        <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+          <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center mb-2.5 font-bold">
+              1
+            </div>
+            <h3 className="text-sm font-bold text-slate-900">Never Fabricates</h3>
+            <p className="text-xs text-slate-500 mt-1">If hazard confidence drops below 40%, the system explicitly states INSUFFICIENT_DATA.</p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center mb-2.5 font-bold">
+              2
+            </div>
+            <h3 className="text-sm font-bold text-slate-900">Deterministic Engine</h3>
+            <p className="text-xs text-slate-500 mt-1">100% rule-based backend math. Groq AI is strictly used to phrase natural explanations.</p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center mb-2.5 font-bold">
+              3
+            </div>
+            <h3 className="text-sm font-bold text-slate-900">Offline Decayed</h3>
+            <p className="text-xs text-slate-500 mt-1">Loses confidence in dead zones over time, ensuring you never rely on stale hazard data.</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,38 @@
+{
+  "action": "INSUFFICIENT_DATA",
+  "risk_score": 0.225,
+  "confidence": 0.25,
+  "controlling_segment": {
+    "segment_id": "S4",
+    "name": "Muthanga Wildlife Corridor",
+    "hazard_type": "wildlife",
+    "source": "Forest dept corridor map (Simulated)",
+    "severity": 0.45,
+    "base_confidence": 0.1,
+    "trend": "falling",
+    "source_agreement": 0.1,
+    "data_recency": 0,
+    "historical_reliability": 0.7,
+    "confidence": 0.25,
+    "risk_score": 0.225,
+    "action_candidate": "INSUFFICIENT_DATA"
+  },
+  "segment_scores": [
+    {
+      "segment_id": "S4",
+      "name": "Muthanga Wildlife Corridor",
+      "hazard_type": "wildlife",
+      "source": "Forest dept corridor map (Simulated)",
+      "severity": 0.45,
+      "base_confidence": 0.1,
+      "trend": "falling",
+      "source_agreement": 0.1,
+      "data_recency": 0,
+      "historical_reliability": 0.7,
+      "confidence": 0.25,
+      "risk_score": 0.225,
+      "action_candidate": "INSUFFICIENT_DATA"
+    }
+  ],
+  "valid_until": "2026-09-20T08:32:12.877Z"
+}
