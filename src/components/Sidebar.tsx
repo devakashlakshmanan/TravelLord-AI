@@ -9,7 +9,6 @@ import {
   Zap,
   GitFork,
   Clock,
-  FlaskConical,
   Map,
   Radio,
   History,
@@ -39,7 +38,7 @@ export const PRIMARY_SIDEBAR_SECTIONS: NavSection[] = [
     title: 'OVERVIEW',
     items: [
       {
-        label: 'Command Center',
+        label: 'Main Dashboard',
         href: '/dashboard',
         icon: Home,
         priority: 'high'
@@ -71,11 +70,6 @@ export const PRIMARY_SIDEBAR_SECTIONS: NavSection[] = [
         label: 'Decision Timeline',
         href: '/decision-timeline',
         icon: Clock
-      },
-      {
-        label: 'What-If Simulator',
-        href: '/simulator',
-        icon: FlaskConical
       },
     ],
   },
@@ -185,23 +179,23 @@ export function SidebarContent({ onItemClick }: SidebarContentProps) {
                   href={item.href}
                   onClick={onItemClick}
                   className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all group ${active
-                      ? isHighPriority
-                        ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 shadow-sm'
-                        : 'bg-slate-800 text-white border border-slate-700/80 shadow-xs'
-                      : isHighPriority
-                        ? 'text-slate-200 hover:text-white hover:bg-slate-800/80'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    ? isHighPriority
+                      ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 shadow-sm'
+                      : 'bg-slate-800 text-white border border-slate-700/80 shadow-xs'
+                    : isHighPriority
+                      ? 'text-slate-200 hover:text-white hover:bg-slate-800/80'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                     }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <Icon
                       className={`w-4 h-4 shrink-0 transition-colors ${active
-                          ? isHighPriority
-                            ? 'text-emerald-400'
-                            : 'text-sky-400'
-                          : isHighPriority
-                            ? 'text-slate-300 group-hover:text-emerald-400'
-                            : 'text-slate-500 group-hover:text-slate-300'
+                        ? isHighPriority
+                          ? 'text-emerald-400'
+                          : 'text-sky-400'
+                        : isHighPriority
+                          ? 'text-slate-300 group-hover:text-emerald-400'
+                          : 'text-slate-500 group-hover:text-slate-300'
                         }`}
                     />
                     <span className="truncate">{item.label}</span>
@@ -211,12 +205,12 @@ export function SidebarContent({ onItemClick }: SidebarContentProps) {
                     {item.badge && (
                       <span
                         className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${item.badge.type === 'critical'
-                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                            : item.badge.type === 'live'
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                              : item.badge.type === 'warning'
-                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                          : item.badge.type === 'live'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : item.badge.type === 'warning'
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
                           }`}
                       >
                         {item.badge.text}
@@ -242,8 +236,8 @@ export function SidebarContent({ onItemClick }: SidebarContentProps) {
               href={SETTINGS_NAV_ITEM.href}
               onClick={onItemClick}
               className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${active
-                  ? 'bg-slate-800 text-white border border-slate-700'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                ? 'bg-slate-800 text-white border border-slate-700'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
