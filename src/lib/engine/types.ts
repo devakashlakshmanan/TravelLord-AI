@@ -41,7 +41,15 @@ export type SafetyAction =
   | 'Slow Down'
   | 'Continue'
   | 'ELEVATED_CAUTION'
-  | 'INSUFFICIENT_DATA';
+  | 'INSUFFICIENT_DATA'
+  | 'STOP'
+  | 'WAIT'
+  | 'SLOW_DOWN'
+  | 'CONTINUE'
+  | 'TURN_BACK'
+  | 'DIVERT'
+  | 'SEEK_SHELTER'
+  | 'CONTACT_HELP';
 
 export interface DecisionResult {
   action: SafetyAction;
@@ -51,4 +59,33 @@ export interface DecisionResult {
   segment_scores: SegmentEvaluation[];
   valid_until: string;
   trip_id?: string;
+  
+  // Enhanced Action Resolution fields (backward-compatible extensions)
+  actionTitle?: string;
+  decisionWindowMinutes?: number;
+  decisionWindowDescription?: string;
+  reasons?: string[];
+  rejectedActions?: Array<{
+    action: string;
+    reason: string;
+    conflictHazard?: string;
+    secondaryRisk?: string;
+  }>;
+  recoverability?: string;
+  activeHazardsCount?: number;
+  isSimulatedScenario?: boolean;
+  scenarioName?: string;
+  recommendationSummary?: string;
 }
+
+export const WAYANAD_CHECKPOINTS = [
+  { id: 'S1', name: 'Adivaram (Base Checkpoint)', lat: 11.4880, lng: 76.1220 },
+  { id: 'S5', name: 'Lakkidi Viewpoint Curve', lat: 11.5000, lng: 75.9980 },
+  { id: 'S3', name: 'Vythiri Ghat Incline', lat: 11.5760, lng: 76.0980 },
+  { id: 'S2', name: 'Meppadi Junction Bypass', lat: 11.5480, lng: 76.2790 },
+  { id: 'S6', name: 'Kalpetta Bypass Link', lat: 11.6090, lng: 76.0830 },
+  { id: 'S4', name: 'Muthanga / Padinjarethara Sector', lat: 11.6280, lng: 76.4310 },
+];
+
+// Re-export all rich types from actionTypes
+export * from './actionResolution/actionTypes';

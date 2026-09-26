@@ -4,65 +4,10 @@ import React from 'react';
 import { 
   PhoneCall, 
   ShieldAlert, 
-  Flame, 
-  Trees, 
-  Hospital, 
-  WifiOff, 
-  MapPin
+  MapPin, 
+  WifiOff 
 } from 'lucide-react';
-
-const EMERGENCY_CONTACTS = [
-  {
-    service: 'Disaster Management',
-    name: 'Kerala State Disaster Management Authority (SDMA)',
-    number: '1077',
-    altNumber: '0471-2331645',
-    description: 'Direct state control room for landslide alerts, river inundation, and emergency highway clearance.',
-    icon: ShieldAlert,
-    iconBg: 'bg-rose-50 text-rose-700',
-    borderColor: 'border-rose-200'
-  },
-  {
-    service: 'Police Assistance',
-    name: 'Wayanad Highway Police & Control Room',
-    number: '112',
-    altNumber: '04936-202525',
-    description: 'Ghat patrol, accident response, and live traffic diversion coordination between Adivaram and Lakkidi.',
-    icon: PhoneCall,
-    iconBg: 'bg-blue-50 text-blue-700',
-    borderColor: 'border-blue-200'
-  },
-  {
-    service: 'Medical & Ambulance',
-    name: 'National Ambulance Emergency Service',
-    number: '108',
-    altNumber: '04936-202441',
-    description: 'Dispatches 4x4 mountain-capable ambulances from Vythiri and Kalpetta general hospitals.',
-    icon: Hospital,
-    iconBg: 'bg-emerald-50 text-emerald-700',
-    borderColor: 'border-emerald-200'
-  },
-  {
-    service: 'Forest Department',
-    name: 'Wayanad Wildlife Division (Muthanga Checkpost)',
-    number: '04936-220454',
-    altNumber: '1800-425-4733',
-    description: 'Elephant crossing interventions, wildlife conflicts, and fallen tree removals in forest stretches.',
-    icon: Trees,
-    iconBg: 'bg-amber-50 text-amber-700',
-    borderColor: 'border-amber-200'
-  },
-  {
-    service: 'Fire & Rescue',
-    name: 'Kalpetta Fire & Mountain Rescue Station',
-    number: '101',
-    altNumber: '04936-202101',
-    description: 'Debris clearance, hydraulic rescue equipment, and cliff-side recovery operations.',
-    icon: Flame,
-    iconBg: 'bg-orange-50 text-orange-700',
-    borderColor: 'border-orange-200'
-  }
-];
+import { EMERGENCY_CONTACTS } from '@/lib/data/emergencyContacts';
 
 export default function EmergencyContactsPage() {
   return (
@@ -74,10 +19,10 @@ export default function EmergencyContactsPage() {
           <span>Verified Emergency Directory</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-          NH-766 Emergency Contacts
+          Mountain Pass Emergency Contacts
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
-          Official toll-free helplines and district emergency centers along the Kozhikode–Wayanad mountain highway.
+          Official toll-free helplines and district emergency coordination centers along the Western Ghats mountain corridors.
         </p>
       </div>
 
@@ -88,7 +33,7 @@ export default function EmergencyContactsPage() {
           <span>Critical Dead-Zone Protocol (When Phones Have No Signal)</span>
         </div>
         <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
-          The 9 hairpin curves between Adivaram and Lakkidi contain severe mobile dead zones. If you encounter an emergency with zero mobile network, <strong>do not rely on phone calls or apps</strong>. Immediately signal the nearest physical outpost:
+          Ghat hairpin curves contain severe mobile dead zones. If you encounter an emergency with zero mobile network, <strong>do not rely on phone calls or apps</strong>. Immediately signal the nearest physical outpost:
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs text-amber-900 font-semibold">
           <div className="p-2.5 rounded-xl bg-amber-100/80 border border-amber-200 flex items-center gap-2">
@@ -104,56 +49,52 @@ export default function EmergencyContactsPage() {
 
       {/* Emergency Contacts Directory */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {EMERGENCY_CONTACTS.map((contact, idx) => {
-          const Icon = contact.icon;
-
-          return (
-            <div
-              key={idx}
-              className={`bg-white rounded-2xl border ${contact.borderColor} p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-4`}
-            >
-              <div>
-                <div className="flex items-center gap-3 mb-2.5">
-                  <div className={`w-9 h-9 rounded-xl ${contact.iconBg} flex items-center justify-center shrink-0`}>
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                      {contact.service}
-                    </span>
-                    <h2 className="text-sm font-bold text-slate-900 leading-snug">
-                      {contact.name}
-                    </h2>
-                  </div>
+        {EMERGENCY_CONTACTS.map((contact) => (
+          <div
+            key={contact.id}
+            className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-4 hover:border-slate-300 transition"
+          >
+            <div>
+              <div className="flex items-center gap-3 mb-2.5">
+                <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="w-4 h-4" />
                 </div>
-
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  {contact.description}
-                </p>
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    {contact.category.replace('_', ' ')}
+                  </span>
+                  <h2 className="text-sm font-bold text-slate-900 leading-snug">
+                    {contact.title}
+                  </h2>
+                </div>
               </div>
 
-              {/* Call Actions */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <a
-                  href={`tel:${contact.number.replace(/\D/g, '')}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs"
-                >
-                  <PhoneCall className="w-3 h-3 text-emerald-400" />
-                  <span>Call {contact.number}</span>
-                </a>
-
-                {contact.altNumber && (
-                  <a
-                    href={`tel:${contact.altNumber.replace(/\D/g, '')}`}
-                    className="text-xs font-semibold text-slate-600 hover:text-slate-900 underline"
-                  >
-                    Alt: {contact.altNumber}
-                  </a>
-                )}
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {contact.desc}
+              </p>
+              <div className="text-[11px] text-slate-400 mt-1 font-medium">
+                Jurisdiction: {contact.jurisdiction}
               </div>
             </div>
-          );
-        })}
+
+            {/* Call Actions */}
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <a
+                href={`tel:${contact.number.replace(/\D/g, '')}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs"
+              >
+                <PhoneCall className="w-3 h-3 text-emerald-400" />
+                <span>Call {contact.number}</span>
+              </a>
+
+              {contact.tollFree && (
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                  Toll-Free 24/7
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

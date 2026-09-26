@@ -3,16 +3,28 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { getSegmentsBetween } from '@/lib/engine/corridor';
 import { evaluateSegment, resolveRouteAction } from '@/lib/engine/safetyEngine';
 import { HazardSegment, CrowdVerification, SegmentEvaluation } from '@/lib/engine/types';
+import { resolveProtectiveAction } from '@/lib/engine/actionResolution/actionResolutionEngine';
+import { DEMO_SCENARIOS } from '@/lib/engine/actionResolution/scenarios';
 
 /**
  * /api/resolve-action
  * 
  * Safety Critical Deterministic Decision Engine
- * ZERO AI / LLM calls here.
+ * ZERO AI / LLM calls here. Pure rule & constraint math.
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // 1. Direct Scenario Execution Support (for demo control panel)
+    if (body.scenario_id) {
+      const scenario = DEMO_SCENARIOS.find(s => s.id === body.scenario_id);
+      if (scenario) {
+        const scenarioResult = resolveProtectiveAction(scenario.params);
+        return NextResponse.json(scenarioResult);
+      }
+    }
+
     let segmentIds: string[] = [];
 
     if (Array.isArray(body.segment_ids) && body.segment_ids.length > 0) {
@@ -21,7 +33,7 @@ export async function POST(request: NextRequest) {
       segmentIds = getSegmentsBetween(body.source, body.destination);
     } else {
       return NextResponse.json(
-        { error: 'Invalid request: please provide segment_ids array or source and destination.' },
+        { error: 'Invalid request: please provide segment_ids array, source & destination, or scenario_id.' },
         { status: 400 }
       );
     }

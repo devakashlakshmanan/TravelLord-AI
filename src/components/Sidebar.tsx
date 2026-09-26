@@ -3,43 +3,126 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  Compass, 
-  Map, 
-  AlertTriangle, 
-  ShieldCheck, 
-  PhoneCall, 
-  HelpCircle, 
-  Clock, 
-  Database, 
-  MessageSquareText,
-  Sparkles,
+import {
+  Home,
+  Compass,
+  Zap,
+  GitFork,
+  Clock,
+  FlaskConical,
+  Map,
+  Radio,
+  History,
+  ShieldAlert,
+  Settings,
   ChevronRight
 } from 'lucide-react';
 
-export interface NavItem {
+export interface NavItemConfig {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  isSpecial?: boolean;
+  badge?: {
+    text: string;
+    type: 'critical' | 'warning' | 'live' | 'primary';
+  };
+  priority?: 'high' | 'normal';
 }
 
-export const MAIN_NAV_ITEMS: NavItem[] = [
-  { label: 'Trip Planner', href: '/dashboard', icon: Compass },
-  { label: 'Live Corridor Map', href: '/map', icon: Map },
-  { label: 'Hazard Guide', href: '/learn/hazards', icon: AlertTriangle },
-  { label: 'Ghat Road Safety Tips', href: '/learn/safety-tips', icon: ShieldCheck },
-  { label: 'Emergency Contacts', href: '/learn/emergency-contacts', icon: PhoneCall },
-  { label: 'How TravelLord Works', href: '/learn/how-it-works', icon: HelpCircle },
-  { label: 'Trip History', href: '/history', icon: Clock },
-  { label: 'Data Sources & Transparency', href: '/learn/data-sources', icon: Database },
+export interface NavSection {
+  title: string;
+  items: NavItemConfig[];
+}
+
+export const PRIMARY_SIDEBAR_SECTIONS: NavSection[] = [
+  {
+    title: 'OVERVIEW',
+    items: [
+      {
+        label: 'Command Center',
+        href: '/dashboard',
+        icon: Home,
+        priority: 'high'
+      },
+      {
+        label: 'Plan a Safe Trip',
+        href: '/plan',
+        icon: Compass,
+        priority: 'high',
+      },
+    ],
+  },
+  {
+    title: 'DECISION INTELLIGENCE',
+    items: [
+      {
+        label: 'Action Resolver',
+        href: '/action-resolver',
+        icon: Zap,
+        priority: 'high',
+        badge: { text: 'Engine', type: 'primary' }
+      },
+      {
+        label: 'Route Alternatives',
+        href: '/route-alternatives',
+        icon: GitFork
+      },
+      {
+        label: 'Decision Timeline',
+        href: '/decision-timeline',
+        icon: Clock
+      },
+      {
+        label: 'What-If Simulator',
+        href: '/simulator',
+        icon: FlaskConical
+      },
+    ],
+  },
+  {
+    title: 'LIVE INTELLIGENCE',
+    items: [
+      {
+        label: 'Live Risk Map',
+        href: '/map',
+        icon: Map,
+        priority: 'high',
+      },
+      {
+        label: 'Hazard Intelligence',
+        href: '/hazards',
+        icon: Radio
+      },
+    ],
+  },
+  {
+    title: 'TRIP',
+    items: [
+      {
+        label: 'Trip History',
+        href: '/history',
+        icon: History
+      },
+    ],
+  },
+  {
+    title: 'EMERGENCY',
+    items: [
+      {
+        label: 'Emergency Center',
+        href: '/emergency',
+        icon: ShieldAlert,
+        priority: 'high',
+        badge: { text: '112', type: 'critical' }
+      },
+    ],
+  },
 ];
 
-export const CHAT_ASSIST_ITEM: NavItem = {
-  label: 'Chat Assistant',
-  href: '/chat',
-  icon: MessageSquareText,
-  isSpecial: true,
+export const SETTINGS_NAV_ITEM: NavItemConfig = {
+  label: 'Settings',
+  href: '/settings',
+  icon: Settings,
 };
 
 interface SidebarContentProps {
@@ -51,98 +134,131 @@ export function SidebarContent({ onItemClick }: SidebarContentProps) {
 
   const isItemActive = (href: string) => {
     if (href === '/dashboard') {
-      return pathname === '/dashboard' || pathname === '/result';
+      return pathname === '/dashboard' || pathname === '/command-center' || pathname === '/result';
     }
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Top Header Label */}
-      <div className="px-5 pt-4 pb-2">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
-          Corridor Navigation
+    <div className="flex flex-col h-full bg-slate-900 text-slate-300 select-none">
+      {/* Brand / Logo Header */}
+      <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+        <Link href="/dashboard" onClick={onItemClick} className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-xs">
+            <Zap className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />
+          </div>
+          <div>
+            <span className="font-extrabold text-sm text-white tracking-tight group-hover:text-emerald-400 transition">
+              TRAVELORD AI
+            </span>
+            <span className="block text-[10px] font-mono text-emerald-400/80 uppercase tracking-wider">
+              Protective Action OS
+            </span>
+          </div>
+        </Link>
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          LIVE
         </span>
       </div>
 
-      {/* Main 8 Navigation Items */}
-      <nav className="flex-1 px-3 py-1 space-y-1 overflow-y-auto">
-        {MAIN_NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const active = isItemActive(item.href);
+      {/* Navigation Sections */}
+      <div className="flex-1 px-3 py-3 space-y-4 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+        {PRIMARY_SIDEBAR_SECTIONS.map((section) => (
+          <div key={section.title} className="space-y-1">
+            {/* Section Header */}
+            <div className="px-3 pt-1 pb-1">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                {section.title}
+              </span>
+            </div>
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onItemClick}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all group ${
-                active
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
-              }`}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Icon
-                  className={`w-4 h-4 shrink-0 transition-colors ${
-                    active ? 'text-emerald-400' : 'text-slate-400 group-hover:text-slate-700'
-                  }`}
-                />
-                <span className="truncate">{item.label}</span>
-              </div>
-              {active && <ChevronRight className="w-3.5 h-3.5 opacity-60 shrink-0" />}
-            </Link>
-          );
-        })}
-      </nav>
+            {/* Section Items */}
+            {section.items.map((item) => {
+              const Icon = item.icon;
+              const active = isItemActive(item.href);
+              const isHighPriority = item.priority === 'high';
 
-      {/* Visual Divider */}
-      <div className="mx-4 my-2 border-t border-slate-200/80" />
-
-      {/* 9th Item: Chat Assistant (Visually Separated at Bottom) */}
-      <div className="p-3">
-        {(() => {
-          const Icon = CHAT_ASSIST_ITEM.icon;
-          const active = isItemActive(CHAT_ASSIST_ITEM.href);
-
-          return (
-            <Link
-              href={CHAT_ASSIST_ITEM.href}
-              onClick={onItemClick}
-              className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all border ${
-                active
-                  ? 'bg-emerald-900 text-white border-emerald-950 shadow-sm'
-                  : 'bg-emerald-50/70 hover:bg-emerald-100/80 text-emerald-900 border-emerald-200/90'
-              }`}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                  active ? 'bg-emerald-800 text-emerald-300' : 'bg-white text-emerald-700 shadow-2xs'
-                }`}>
-                  <Icon className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span>{CHAT_ASSIST_ITEM.label}</span>
-                    <Sparkles className="w-3 h-3 text-amber-500 fill-amber-400" />
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onItemClick}
+                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all group ${active
+                      ? isHighPriority
+                        ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 shadow-sm'
+                        : 'bg-slate-800 text-white border border-slate-700/80 shadow-xs'
+                      : isHighPriority
+                        ? 'text-slate-200 hover:text-white hover:bg-slate-800/80'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                    }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Icon
+                      className={`w-4 h-4 shrink-0 transition-colors ${active
+                          ? isHighPriority
+                            ? 'text-emerald-400'
+                            : 'text-sky-400'
+                          : isHighPriority
+                            ? 'text-slate-300 group-hover:text-emerald-400'
+                            : 'text-slate-500 group-hover:text-slate-300'
+                        }`}
+                    />
+                    <span className="truncate">{item.label}</span>
                   </div>
-                  <p className={`text-[10px] font-normal leading-tight ${active ? 'text-emerald-200' : 'text-emerald-700/80'}`}>
-                    Plan Assist AI
-                  </p>
-                </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {item.badge && (
+                      <span
+                        className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${item.badge.type === 'critical'
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                            : item.badge.type === 'live'
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : item.badge.type === 'warning'
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                          }`}
+                      >
+                        {item.badge.text}
+                      </span>
+                    )}
+                    {active && <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom Settings Link & Status Indicator */}
+      <div className="p-3 border-t border-slate-800/80 bg-slate-950/60">
+        {(() => {
+          const Icon = SETTINGS_NAV_ITEM.icon;
+          const active = isItemActive(SETTINGS_NAV_ITEM.href);
+
+          return (
+            <Link
+              href={SETTINGS_NAV_ITEM.href}
+              onClick={onItemClick}
+              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${active
+                  ? 'bg-slate-800 text-white border border-slate-700'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Icon className={`w-4 h-4 ${active ? 'text-slate-200' : 'text-slate-400'}`} />
+                <span>{SETTINGS_NAV_ITEM.label}</span>
               </div>
-              <ChevronRight className="w-3.5 h-3.5 opacity-60 shrink-0" />
+              {active && <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />}
             </Link>
           );
         })()}
-      </div>
 
-      {/* Bottom Corridor Tag */}
-      <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-[11px] text-slate-400">
-        <span className="font-medium">NH-766 Wayanad</span>
-        <span className="text-[10px] uppercase font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
-          Active
-        </span>
+        <div className="mt-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+          <span className="font-mono truncate">NH-766 Wayanad</span>
+          <span className="text-[9px] font-bold uppercase text-emerald-400">Telemetry Live</span>
+        </div>
       </div>
     </div>
   );
@@ -150,9 +266,9 @@ export function SidebarContent({ onItemClick }: SidebarContentProps) {
 
 export default function Sidebar() {
   return (
-    <aside 
+    <aside
       id="desktop-sidebar"
-      className="hidden md:flex flex-col w-64 shrink-0 bg-white border-r border-slate-200 sticky top-16 h-[calc(100vh-4rem)]"
+      className="hidden md:flex flex-col w-64 shrink-0 bg-slate-900 border-r border-slate-800 sticky top-16 h-[calc(100vh-4rem)]"
     >
       <SidebarContent />
     </aside>

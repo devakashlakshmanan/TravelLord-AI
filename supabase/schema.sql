@@ -103,9 +103,42 @@ ON CONFLICT (segment_id) DO UPDATE SET
     trend = EXCLUDED.trend,
     last_updated = EXCLUDED.last_updated;
 
+-- 4. Create safe_locations table (Shelters & Designated Waypoints)
+CREATE TABLE IF NOT EXISTS public.safe_locations (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    lat DOUBLE PRECISION NOT NULL,
+    lng DOUBLE PRECISION NOT NULL,
+    location_type TEXT NOT NULL DEFAULT 'SAFE_ZONE',
+    capacity_status TEXT NOT NULL DEFAULT 'AVAILABLE',
+    nearest_segment_id TEXT REFERENCES public.hazard_segments(segment_id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 5. Create decision_history table (Auditable decision logs)
+CREATE TABLE IF NOT EXISTS public.decision_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    trip_id UUID REFERENCES public.trips(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    resolved_action TEXT NOT NULL,
+    risk_score DOUBLE PRECISION NOT NULL,
+    confidence DOUBLE PRECISION NOT NULL,
+    decision_window_minutes INTEGER NOT NULL DEFAULT 15,
+    recoverability TEXT NOT NULL DEFAULT 'HIGH',
+    controlling_segment_id TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE public.safe_locations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.decision_history ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read safe_locations" ON public.safe_locations FOR SELECT USING (true);
+CREATE POLICY "Users can CRUD own decision_history" ON public.decision_history FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
 -- =============================================================================
--- Verification Queries (Run these to confirm setup)
+-- Performance & Query Optimization Indexes
 -- =============================================================================
--- SELECT * FROM public.hazard_segments ORDER BY segment_id;
--- SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public';
--- SELECT schemaname, tablename, policyname, roles, cmd, qual, with_check FROM pg_policies WHERE schemaname = 'public';
+CREATE INDEX IF NOT EXISTS idx_crowd_verifications_segment_created ON public.crowd_verifications (segment_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_trips_user_created ON public.trips (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_decision_history_trip_user ON public.decision_history (trip_id, user_id, created_at DESC);

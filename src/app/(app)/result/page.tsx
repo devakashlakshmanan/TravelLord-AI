@@ -6,23 +6,35 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { DecisionResult } from '@/lib/engine/types';
 import SafetyCard from '@/components/SafetyCard';
+import ActionResolutionTree from '@/components/ActionResolutionTree';
+import ScenarioSimulator from '@/components/ScenarioSimulator';
+import EmergencyPanel from '@/components/EmergencyPanel';
 import CrowdVerification from '@/components/CrowdVerification';
 import OfflineBanner from '@/components/OfflineBanner';
-import { ArrowLeft, RefreshCw, Loader2, AlertCircle, Compass, Shield, Wifi, WifiOff } from 'lucide-react';
+import { DemoScenario, DEMO_SCENARIOS } from '@/lib/engine/actionResolution/scenarios';
+import { resolveProtectiveAction } from '@/lib/engine/actionResolution/actionResolutionEngine';
+import { 
+  ArrowLeft, 
+  RefreshCw, 
+  Loader2, 
+  AlertCircle, 
+  Shield, 
+  Wifi, 
+  WifiOff
+} from 'lucide-react';
 
-// Dynamically import Leaflet CorridorMap with ssr: false for App Router compatibility
 const CorridorMap = dynamic(() => import('@/components/CorridorMap'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-80 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-xs text-slate-500 font-medium">
+    <div className="w-full h-84 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-xs text-slate-500 font-medium">
       <Loader2 className="w-5 h-5 animate-spin mr-2 text-slate-600" />
-      <span>Loading NH-766 corridor map...</span>
+      <span>Loading interactive mountain corridor map...</span>
     </div>
   ),
 });
 
 interface CachedPayload {
-  decision: DecisionResult;
+  decision: any;
   explanation: string;
   cachedAt: number;
 }
@@ -36,13 +48,18 @@ function ResultDashboard() {
   const source = searchParams.get('source') || 'S1';
   const destination = searchParams.get('destination') || 'S6';
   const tripId = searchParams.get('trip_id');
+  const corridorParam = searchParams.get('corridor');
+  const scenarioParam = searchParams.get('scenario');
 
-  const [decision, setDecision] = useState<DecisionResult | null>(null);
+  const [decision, setDecision] = useState<any | null>(null);
   const [explanation, setExplanation] = useState<string>('');
   const [cachedAt, setCachedAt] = useState<number>(Date.now());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Active scenario state
+  const [activeScenarioId, setActiveScenarioId] = useState<string | undefined>(scenarioParam || undefined);
 
   // Offline Handling State
   const [isOffline, setIsOffline] = useState(false);
@@ -50,8 +67,122 @@ function ResultDashboard() {
   const [simulatedMinutesOffline, setSimulatedMinutesOffline] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(Date.now());
 
+  // Execute scenario directly through the deterministic engine
+  const executeScenario = useCallback(async (scenario: DemoScenario) => {
+    setRefreshing(true);
+    setError(null);
+    setActiveScenarioId(scenario.id);
+
+    try {
+      // Step A: Pure deterministic resolution (Zero AI)
+      const res = await fetch('/api/resolve-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenario_id: scenario.id }),
+      });
+
+      let scenarioDecision: any;
+      if (res.ok) {
+        scenarioDecision = await res.json();
+      } else {
+        // Fallback local deterministic execution
+        scenarioDecision = resolveProtectiveAction(scenario.params);
+      }
+
+      // Convert to component shape
+      const formattedDecision: DecisionResult = {
+        action: scenarioDecision.action,
+        actionTitle: scenarioDecision.actionTitle,
+        risk_score: scenarioDecision.riskScore ?? 0.5,
+        confidence: scenarioDecision.confidence ?? 0.8,
+        controlling_segment: scenarioDecision.controllingHazard ? {
+          segment_id: scenarioDecision.controllingSegmentId,
+          name: scenarioDecision.controllingHazard.location.name,
+          hazard_type: scenarioDecision.controllingHazard.type,
+          source: scenarioDecision.controllingHazard.source,
+          severity: scenarioDecision.controllingHazard.severity,
+          base_confidence: scenarioDecision.controllingHazard.confidence,
+          trend: scenarioDecision.controllingHazard.trend,
+          source_agreement: scenarioDecision.controllingHazard.confidence,
+          data_recency: 1.0,
+          historical_reliability: 0.7,
+          confidence: scenarioDecision.confidence,
+          risk_score: scenarioDecision.riskScore,
+          action_candidate: scenarioDecision.action,
+        } : {
+          segment_id: scenarioDecision.controllingSegmentId || 'S1',
+          name: 'Mountain Pass Checkpoint',
+          hazard_type: 'landslide',
+          source: 'GSI Slope Telemetry (Modeled)',
+          severity: scenarioDecision.riskScore,
+          base_confidence: scenarioDecision.confidence,
+          trend: 'rising',
+          source_agreement: 0.8,
+          data_recency: 1.0,
+          historical_reliability: 0.7,
+          confidence: scenarioDecision.confidence,
+          risk_score: scenarioDecision.riskScore,
+          action_candidate: scenarioDecision.action,
+        },
+        segment_scores: [],
+        valid_until: scenarioDecision.validUntil || new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        reasons: scenarioDecision.reasons,
+        rejectedActions: scenarioDecision.rejectedActions,
+        decisionWindowMinutes: scenarioDecision.decisionWindowMinutes,
+        decisionWindowDescription: scenarioDecision.decisionWindowDescription,
+        recoverability: scenarioDecision.recoverability,
+        isSimulatedScenario: true,
+        scenarioName: scenario.name,
+        recommendationSummary: scenarioDecision.recommendationSummary,
+      };
+
+      setDecision(formattedDecision);
+
+      // Step B: Groq Natural Language Explanation
+      const explainRes = await fetch('/api/generate-explanation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formattedDecision),
+      });
+
+      let explainText = '';
+      if (explainRes.ok) {
+        const explainData = await explainRes.json();
+        explainText = explainData.explanation;
+        setExplanation(explainText);
+      } else {
+        setExplanation(scenarioDecision.recommendationSummary || '');
+      }
+
+      const now = Date.now();
+      setCachedAt(now);
+
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          decision: formattedDecision,
+          explanation: explainText,
+          cachedAt: now,
+        }));
+      } catch (e) {}
+
+    } catch (err: any) {
+      console.error('Scenario execution error:', err);
+    } finally {
+      setRefreshing(false);
+      setLoading(false);
+    }
+  }, []);
+
   // 1. Fetch safety data online
   const fetchSafetyData = useCallback(async (isSilentRefresh = false) => {
+    if (scenarioParam) {
+      const targetScenario = DEMO_SCENARIOS.find(s => s.id === scenarioParam);
+      if (targetScenario) {
+        executeScenario(targetScenario);
+        return;
+      }
+    }
+
     if (typeof window !== 'undefined' && !navigator.onLine && !isOffline) {
       setIsOffline(true);
       return;
@@ -62,7 +193,6 @@ function ResultDashboard() {
     setError(null);
 
     try {
-      // Step A: Deterministic Decision Engine (Zero AI)
       const resolveRes = await fetch('/api/resolve-action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,7 +207,6 @@ function ResultDashboard() {
       const decisionData: DecisionResult = await resolveRes.json();
       setDecision(decisionData);
 
-      // Step B: Groq Natural Language Explanation
       const explainRes = await fetch('/api/generate-explanation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,17 +223,14 @@ function ResultDashboard() {
       const now = Date.now();
       setCachedAt(now);
 
-      // Cache to localStorage
       try {
-        const cachePayload: CachedPayload = {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
           decision: decisionData,
           explanation: explainText,
           cachedAt: now,
-        };
-        localStorage.setItem(CACHE_KEY, JSON.stringify(cachePayload));
-      } catch (e) {
-        console.warn('Failed to save to localStorage cache:', e);
-      }
+        }));
+      } catch (e) {}
+
     } catch (err: any) {
       console.error('Safety evaluation network error:', err);
       const cached = loadFromCache();
@@ -115,9 +241,8 @@ function ResultDashboard() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [source, destination, isOffline]);
+  }, [source, destination, isOffline, scenarioParam, executeScenario]);
 
-  // Load from localStorage cache
   const loadFromCache = useCallback((): boolean => {
     try {
       const raw = localStorage.getItem(CACHE_KEY);
@@ -128,31 +253,25 @@ function ResultDashboard() {
         setCachedAt(parsed.cachedAt);
         return true;
       }
-    } catch (e) {
-      console.warn('Error reading from localStorage cache:', e);
-    }
+    } catch (e) {}
     return false;
   }, []);
 
-  // 2. Online / Offline Event Listeners
+  // Online / Offline Listeners
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (!navigator.onLine) {
-        setIsOffline(true);
-        setOfflineSince(Date.now());
-        loadFromCache();
-      }
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      setIsOffline(true);
+      setOfflineSince(Date.now());
+      loadFromCache();
     }
 
     const handleOnline = () => {
-      console.log('Online event detected — restoring live connectivity...');
       setIsOffline(false);
       setSimulatedMinutesOffline(0);
       fetchSafetyData();
     };
 
     const handleOffline = () => {
-      console.log('Offline event detected — activating offline mode...');
       setIsOffline(true);
       setOfflineSince(Date.now());
       loadFromCache();
@@ -176,7 +295,6 @@ function ResultDashboard() {
     fetchSafetyData();
   }, [fetchSafetyData]);
 
-  // Displayed confidence decay calculation
   let displayedConfidence = decision?.confidence ?? 0;
   if (isOffline && decision) {
     const elapsedRealMinutes = Math.max(0, (currentTime - cachedAt) / (60 * 1000));
@@ -204,55 +322,61 @@ function ResultDashboard() {
         <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-md mb-4">
           <Shield className="w-6 h-6 text-emerald-400 animate-pulse" />
         </div>
-        <h2 className="text-xl font-bold text-slate-900">Evaluating NH-766 Wayanad Corridor...</h2>
+        <h2 className="text-xl font-bold text-slate-900">Resolving Protective Action...</h2>
         <p className="text-xs text-slate-500 mt-1 max-w-sm">
-          Processing verified hazard telemetry, slope susceptibility models, and live crowd reports.
+          Processing interacting slope hazards, active wildlife corridors, and road access constraints.
         </p>
         <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg">
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          <span>Executing deterministic safety formula...</span>
+          <span>Executing deterministic constraint gates (Zero AI override)...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6">
       {/* Top Header & Navigation */}
-      <div className="flex items-center justify-between gap-4 pb-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-2">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-2xs transition"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-2xs transition"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Change Route</span>
+          <span>Change Route / Parameters</span>
         </Link>
 
         <div className="flex items-center gap-2">
-          {/* Offline Simulation Toggle */}
           <button
             id="simulate-offline-btn"
             onClick={handleToggleSimulateOffline}
-            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border transition ${
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border transition ${
               isOffline
                 ? 'bg-amber-100 text-amber-900 border-amber-300'
                 : 'bg-white text-slate-600 hover:text-slate-900 border-slate-200'
             }`}
           >
             {isOffline ? <WifiOff className="w-3.5 h-3.5 text-amber-700" /> : <Wifi className="w-3.5 h-3.5 text-slate-400" />}
-            <span>{isOffline ? 'Simulating Offline' : 'Simulate Offline'}</span>
+            <span>{isOffline ? 'Simulating Dead Zone' : 'Simulate Dead Zone'}</span>
           </button>
 
           <button
             onClick={() => fetchSafetyData(true)}
             disabled={refreshing || isOffline}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 px-3 py-1.5 rounded-xl shadow-2xs transition disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 px-3 py-2 rounded-xl shadow-2xs transition disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-emerald-600' : ''}`} />
-            <span>{refreshing ? 'Updating...' : 'Refresh'}</span>
+            <span>{refreshing ? 'Re-evaluating...' : 'Re-evaluate'}</span>
           </button>
         </div>
       </div>
+
+      {/* Demo Scenario Controller Bar (Task 14, 15, 31) */}
+      <ScenarioSimulator
+        onScenarioSelect={executeScenario}
+        activeScenarioId={activeScenarioId}
+        isExecuting={refreshing}
+      />
 
       {/* Persistent Offline Banner */}
       {isOffline && (
@@ -265,7 +389,7 @@ function ResultDashboard() {
           />
 
           <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs flex flex-wrap items-center justify-between gap-2 shadow-2xs">
-            <span className="text-slate-500 font-medium">Simulate Elapsed Ghat Time:</span>
+            <span className="text-slate-500 font-medium">Simulate Elapsed Ghat Dead Zone Time:</span>
             <div className="flex items-center gap-2">
               <button
                 id="btn-add-30m"
@@ -316,11 +440,12 @@ function ResultDashboard() {
         </div>
       )}
 
-      {/* Main Safety Card */}
+      {/* Main Decision-First Safety Card */}
       {decision && (
         <>
           <SafetyCard
             action={decision.action}
+            actionTitle={decision.actionTitle}
             riskScore={decision.risk_score}
             confidence={decision.confidence}
             displayedConfidence={displayedConfidence}
@@ -329,12 +454,30 @@ function ResultDashboard() {
             validUntil={decision.valid_until}
             isOffline={isOffline}
             cachedAt={cachedAt}
+            reasons={decision.reasons}
+            rejectedActions={decision.rejectedActions}
+            decisionWindowMinutes={decision.decisionWindowMinutes}
+            decisionWindowDescription={decision.decisionWindowDescription}
+            recoverability={decision.recoverability}
+            isSimulatedScenario={decision.isSimulatedScenario}
+            scenarioName={decision.scenarioName}
           />
 
-          {/* Task 9: Leaflet Corridor Map View */}
+          {/* Signature Action Resolution Visual Tree (Task 32) */}
+          <ActionResolutionTree
+            selectedAction={decision.actionTitle || decision.action}
+            actionTitle={decision.actionTitle}
+            rejectedActions={decision.rejectedActions}
+            reasons={decision.reasons}
+            decisionWindowMinutes={decision.decisionWindowMinutes}
+            recoverability={decision.recoverability}
+          />
+
+          {/* Interactive Mountain Corridor Map */}
           <CorridorMap
             segmentScores={decision.segment_scores}
             controllingSegmentId={decision.controlling_segment.segment_id}
+            corridorName={decision.scenarioName?.includes('Munnar') ? 'Munnar–Valparai High Range Corridor' : 'NH-766 Wayanad Mountain Pass'}
           />
 
           {/* Crowd Verification Section */}
@@ -348,9 +491,12 @@ function ResultDashboard() {
             />
           ) : (
             <div className="p-4 rounded-2xl bg-slate-100 border border-slate-200 text-xs text-slate-500 text-center">
-              Crowd reporting is queued while in offline dead zones. Connect to network to submit verified road conditions.
+              Crowd reporting is queued while in mountain dead zones. Connect to network to submit verified road conditions.
             </div>
           )}
+
+          {/* Emergency Helplines & GPS Broadcast (Task 23) */}
+          <EmergencyPanel />
         </>
       )}
     </div>

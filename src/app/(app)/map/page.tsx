@@ -7,6 +7,8 @@ import { HazardSegment, SegmentEvaluation } from '@/lib/engine/types';
 import { Loader2, AlertTriangle, Layers, Compass } from 'lucide-react';
 import Link from 'next/link';
 
+import { evaluateSegment } from '@/lib/engine/hazardStateAdapter';
+
 // Dynamically import existing CorridorMap with ssr: false (exact same pattern)
 const CorridorMap = dynamic(() => import('@/components/CorridorMap'), {
   ssr: false,
@@ -36,40 +38,9 @@ export default function MapPage() {
         if (fetchErr) throw fetchErr;
 
         if (data) {
-          // Adapt into SegmentEvaluation shape required by CorridorMap
-          const evaluations: SegmentEvaluation[] = data.map((s: HazardSegment) => {
-            const trendMultiplier = s.trend === 'rising' ? 1.2 : s.trend === 'falling' ? 0.8 : 1.0;
-            const confidence = s.base_confidence;
-            const risk_score = Number((s.severity * (0.5 + 0.5 * confidence) * trendMultiplier).toFixed(4));
-
-            let action_candidate = 'Continue';
-            if (confidence >= 0.75) {
-              if (risk_score >= 0.7) action_candidate = 'Turn Back / Divert';
-              else if (risk_score >= 0.5) action_candidate = 'Wait';
-              else if (risk_score >= 0.3) action_candidate = 'Slow Down';
-              else action_candidate = 'Continue';
-            } else if (confidence >= 0.4) {
-              action_candidate = 'ELEVATED_CAUTION';
-            } else {
-              action_candidate = 'INSUFFICIENT_DATA';
-            }
-
-            return {
-              segment_id: s.segment_id,
-              name: s.name,
-              hazard_type: s.hazard_type,
-              source: s.source,
-              severity: s.severity,
-              base_confidence: s.base_confidence,
-              trend: s.trend,
-              source_agreement: s.base_confidence,
-              data_recency: 1.0,
-              historical_reliability: 0.7,
-              confidence,
-              risk_score,
-              action_candidate,
-            };
-          });
+          const evaluations: SegmentEvaluation[] = data.map((s: HazardSegment) => 
+            evaluateSegment(s, [])
+          );
 
           setSegments(evaluations);
         }

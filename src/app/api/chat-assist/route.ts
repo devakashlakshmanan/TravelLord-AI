@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
 
-const SYSTEM_PROMPT = `You are 'Plan Assist', a helpful guide inside TravelLord AI, a travel safety app for the NH-766 Wayanad corridor in Kerala, India. You help travelers understand hazard types, safety tips, emergency contacts, and how the app works. You must NEVER invent, estimate, or imply a specific current hazard risk level, safety action (like continue/wait/divert), or confidence score for any road segment — that information can only come from the app's Trip Planner, which uses verified data and fixed calculations, not general knowledge. If a user asks whether it is currently safe to travel, or asks about live conditions, tell them clearly and politely to check the Trip Planner page for the real, up-to-date recommendation, and briefly explain that only that page uses live-checked data. You may freely discuss general safety knowledge, hazard education, and how the app's features work. Keep answers concise and friendly.`;
+const SYSTEM_PROMPT = `You are 'Plan Assist', the educational and situational guide inside TravelLord AI (Multi-Hazard Awareness and Protective Action Resolution System).
+
+Your role:
+1. Explain what hazard warnings mean (landslide slope saturation, flash floods, wildlife crossing corridors, road closures).
+2. Explain the Protective Action Resolution philosophy: why the system recommends ONE executable action (CONTINUE, SLOW DOWN, STOP, WAIT, TURN BACK, DIVERT, SEEK SHELTER, CONTACT HELP) instead of just an arbitrary risk score.
+3. Explain why dangerous alternate detours are rejected (secondary wildlife conflict, unpaved closure traps, low recoverability).
+4. Explain Data Confidence, Offline Decay, and data provenance (Authoritative vs Modeled vs Crowd vs Simulated).
+5. Guide travelers on mountain emergency preparedness, what survival gear to carry in the Western Ghats, and emergency helpline numbers (Toll-free 112, Kerala SDMA 1077, 0471-2331645).
+
+CRITICAL BOUNDARIES:
+- You must NEVER override or contradict the deterministic safety engine.
+- If a user asks "Should I ignore the recommendation?", explain that TravelLord's recommendations are mathematically calculated from the best available telemetry to protect life, and official state authorities, police, and disaster management take absolute precedence.
+- If a user asks for live real-time routing recommendations, instruct them politely to check the Trip Planner / Result screen which executes the live deterministic resolution engine.
+- Keep answers concise, helpful, friendly, and structured.`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,10 +30,10 @@ export async function POST(request: NextRequest) {
 
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-      return NextResponse.json(
-        { error: 'GROQ_API_KEY is not configured.' },
-        { status: 500 }
-      );
+      return NextResponse.json({
+        reply: "I am Plan Assist, your TravelLord AI guide. For live, verified route recommendations, please visit the Trip Planner page. In emergencies on Kerala ghat roads, dial toll-free 112 or SDMA Helpline 1077.",
+        model: 'offline_guide'
+      });
     }
 
     const groq = new Groq({ apiKey });
@@ -34,7 +47,6 @@ export async function POST(request: NextRequest) {
       })),
     ];
 
-    // Priority model: llama-3.3-70b-versatile, with graceful fallback to available models
     const candidateModels = ['llama-3.3-70b-versatile', 'qwen/qwen3.8-27b', 'openai/gpt-oss-120b'];
     let reply = '';
     let usedModel = candidateModels[0];
@@ -44,7 +56,7 @@ export async function POST(request: NextRequest) {
         const completion = await groq.chat.completions.create({
           model,
           temperature: 0.4,
-          max_tokens: 300,
+          max_tokens: 350,
           messages: conversationMessages as any,
         });
 
@@ -58,7 +70,8 @@ export async function POST(request: NextRequest) {
         if (err.status === 404 || err.code === 'model_not_found' || err.status === 400) {
           continue;
         } else {
-          throw err;
+          console.warn('Chat assistant model fallback warning:', err.message);
+          break;
         }
       }
     }
