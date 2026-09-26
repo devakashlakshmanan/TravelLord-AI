@@ -8,6 +8,7 @@ import { HazardSegment } from '@/lib/engine/types';
 import { resolveProtectiveAction } from '@/lib/engine/actionResolution/actionResolutionEngine';
 import { HazardState, RoadState, ActionDecisionResult } from '@/lib/engine/actionResolution/actionTypes';
 import ProvenanceBadge from '@/components/ProvenanceBadge';
+import { useReplay, ReplayControlBanner } from '@/lib/replay/replayState';
 import { 
   Shield, 
   LogOut, 
@@ -21,11 +22,8 @@ import {
   Radio,
   Sparkles,
   Zap,
-  Hospital,
   ShieldAlert,
   Send,
-  GitFork,
-  HelpCircle,
   Compass
 } from 'lucide-react';
 
@@ -119,67 +117,12 @@ export default function DashboardPage() {
     }
   }, [authLoading, supabase]);
 
+  const { currentSnapshot, currentTimestamp } = useReplay();
+
   // 3. Compute dynamic corridor baseline decision from the real deterministic engine
   const liveCorridorDecision: ActionDecisionResult | null = useMemo(() => {
     if (corridorChoice === 'MUNNAR_VALPARAI') {
-      return resolveProtectiveAction({
-        corridorType: 'MUNNAR_VALPARAI',
-        hazards: [
-          {
-            id: 'H_MUNNAR_LANDSLIDE',
-            type: 'LANDSLIDE',
-            location: { lat: 10.0520, lng: 77.1420, name: 'Lockhart Gap Cliffside' },
-            affectedSegments: ['N_GAP_ROAD'],
-            severity: 0.88,
-            confidence: 0.92,
-            trend: 'rising',
-            source: 'GSI Slope Susceptibility Model',
-            sourceType: 'MODELED',
-            lastUpdated: new Date().toISOString(),
-          },
-          {
-            id: 'H_MUNNAR_WILDLIFE',
-            type: 'WILDLIFE',
-            location: { lat: 10.2010, lng: 77.0120, name: 'Anamudi Shola Reserve' },
-            affectedSegments: ['N_ANAMUDI_PASS'],
-            severity: 0.82,
-            confidence: 0.89,
-            trend: 'stable',
-            source: 'Forest Department RRT Radio Log',
-            sourceType: 'AUTHORITATIVE',
-            lastUpdated: new Date().toISOString(),
-          }
-        ],
-        roadStates: [
-          {
-            segmentId: 'N_GAP_ROAD',
-            name: 'Lockhart Gap Cliffside',
-            state: 'RESTRICTED',
-            source: 'PWD Highway Engineers',
-            sourceType: 'AUTHORITATIVE',
-            confidence: 0.90,
-            lastUpdated: new Date().toISOString(),
-          },
-          {
-            segmentId: 'N_ANAMUDI_PASS',
-            name: 'Anamudi Shola Reserve Link',
-            state: 'OPEN',
-            source: 'Forest Checkpost',
-            sourceType: 'AUTHORITATIVE',
-            confidence: 0.88,
-            lastUpdated: new Date().toISOString(),
-          },
-          {
-            segmentId: 'N_MATTUPETTY',
-            name: 'Mattupetty Bypass Section',
-            state: 'BLOCKED',
-            source: 'State Highways Authority',
-            sourceType: 'AUTHORITATIVE',
-            confidence: 0.95,
-            lastUpdated: new Date().toISOString(),
-          }
-        ]
-      });
+      return currentSnapshot.decisionResult;
     }
 
     if (segments.length === 0) return null;
@@ -382,29 +325,73 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Interactive Synthetic Replay Control Banner */}
+      <ReplayControlBanner />
+
       {/* Operational Highlights Card - Pure Deterministic Engine Output */}
       {liveCorridorDecision ? (
-        <div className="p-6 rounded-2xl bg-slate-900 text-white shadow-md border border-slate-800 space-y-4">
+        <div className="p-6 rounded-2xl bg-slate-900 text-white shadow-md border border-slate-800 space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-emerald-400" />
               <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-400">
-                {corridorChoice === 'MUNNAR_VALPARAI' ? 'Simulated Corridor Directive' : 'Active Corridor Directive'}
+                {corridorChoice === 'MUNNAR_VALPARAI' ? 'Real-Time Replay Corridor Directive' : 'Active Corridor Directive'}
               </span>
-              {corridorChoice === 'MUNNAR_VALPARAI' ? (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                  SIMULATED DEMO
-                </span>
-              ) : (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  ENGINE RESOLVED
-                </span>
-              )}
+              <ProvenanceBadge 
+                origin={corridorChoice === 'MUNNAR_VALPARAI' ? 'SIMULATED_REPLAY' : 'MODELLED'} 
+                source={corridorChoice === 'MUNNAR_VALPARAI' ? 'Synthetic Replay Dataset' : 'Verified Corridor Baseline'} 
+              />
             </div>
             <div className="flex items-center gap-3 text-xs font-mono">
-              <span className="text-slate-400">Confidence: <b className="text-white">{(liveCorridorDecision.confidence * 100).toFixed(0)}%</b></span>
-              <span className="text-slate-400">Decision Window: <b className="text-emerald-400">~{liveCorridorDecision.decisionWindowMinutes} min</b></span>
+              <span className="text-slate-400">Evidence Confidence: <b className="text-white">{(liveCorridorDecision.confidence * 100).toFixed(0)}%</b></span>
+              <span className="text-slate-400">Decision Window: <b className="text-emerald-400">{liveCorridorDecision.decisionWindowDescription || `~${liveCorridorDecision.decisionWindowMinutes} min`}</b></span>
               <span className="text-slate-400">Recoverability: <b className="text-emerald-400">{liveCorridorDecision.recoverability}</b></span>
+            </div>
+          </div>
+
+          {/* Key Metrics Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 text-xs">
+            <div>
+              <div className="text-slate-400 text-[11px]">Overall Risk</div>
+              <div className={`text-base font-extrabold ${
+                (corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.corridorRisk : (liveCorridorDecision.riskScore * 100)) >= 70
+                  ? 'text-rose-400'
+                  : (corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.corridorRisk : (liveCorridorDecision.riskScore * 100)) >= 40
+                  ? 'text-amber-400'
+                  : 'text-emerald-400'
+              }`}>
+                {corridorChoice === 'MUNNAR_VALPARAI' 
+                  ? `${currentSnapshot.corridorRisk} / 100`
+                  : `${(liveCorridorDecision.riskScore * 100).toFixed(0)} / 100`}
+              </div>
+            </div>
+            <div>
+              <div className="text-slate-400 text-[11px]">Risk Trend</div>
+              <div className={`text-base font-extrabold ${
+                (corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.corridorTrend : 'STABLE') === 'RISING'
+                  ? 'text-rose-400'
+                  : 'text-slate-200'
+              }`}>
+                {corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.corridorTrend : 'STABLE'}
+              </div>
+            </div>
+            <div>
+              <div className="text-slate-400 text-[11px]">Corridor Road State</div>
+              <div className={`text-base font-extrabold ${
+                (corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.roadStateSummary : 'OPEN') === 'BLOCKED'
+                  ? 'text-rose-400'
+                  : (corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.roadStateSummary : 'OPEN') === 'RESTRICTED'
+                  ? 'text-amber-400'
+                  : 'text-emerald-400'
+              }`}>
+                {corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.roadStateSummary : 'OPEN'}
+              </div>
+            </div>
+            <div>
+              <div className="text-slate-400 text-[11px]">Primary Hazard</div>
+              <div className="text-xs font-semibold text-slate-200 truncate mt-1">
+                {corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.primaryHazard : 'Geotechnical Slope Alert'}
+              </div>
             </div>
           </div>
 

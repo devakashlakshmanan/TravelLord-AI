@@ -27,6 +27,12 @@ const WAYANAD_COORDINATES: Record<string, [number, number]> = {
 };
 
 const MUNNAR_COORDINATES: Record<string, [number, number]> = {
+  S1: [10.0889, 77.0595], // Munnar -> Gap Road
+  S2: [10.2195, 77.1602], // Gap Road -> Chinnar Approach
+  S3: [10.2750, 77.1370], // Chinnar Approach -> Marayoor
+  S4: [10.3240, 76.9550], // Marayoor -> Valparai East
+  S5: [10.1460, 77.0630], // Munnar -> Anamudi Corridor
+  S6: [10.3265, 76.9515], // Anamudi Corridor -> Valparai
   N_MUNNAR: [10.0889, 77.0595],
   N_GAP_ROAD: [10.0520, 77.1420],
   N_ANAMUDI_PASS: [10.2010, 77.0120],

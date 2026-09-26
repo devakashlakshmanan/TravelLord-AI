@@ -129,11 +129,43 @@ CREATE TABLE IF NOT EXISTS public.decision_history (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- 6. Create synthetic_hazard_replay table (Deterministic Replay Dataset for Munnar-Valparai)
+CREATE TABLE IF NOT EXISTS public.synthetic_hazard_replay (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    timestamp TEXT NOT NULL,
+    segment_id TEXT NOT NULL,
+    from_location TEXT NOT NULL,
+    to_location TEXT NOT NULL,
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    slope_deg DOUBLE PRECISION NOT NULL,
+    rainfall_1h_mm DOUBLE PRECISION NOT NULL,
+    rainfall_24h_mm DOUBLE PRECISION NOT NULL,
+    soil_saturation_pct DOUBLE PRECISION NOT NULL,
+    water_level_pct DOUBLE PRECISION NOT NULL,
+    wildlife_activity_0_1 DOUBLE PRECISION NOT NULL,
+    wildlife_sightings_6h INTEGER NOT NULL,
+    traffic_density_pct DOUBLE PRECISION NOT NULL,
+    road_state TEXT NOT NULL CHECK (road_state IN ('OPEN', 'PARTIALLY_ACCESSIBLE', 'RESTRICTED', 'BLOCKED', 'UNKNOWN')),
+    landslide_risk_0_100 DOUBLE PRECISION,
+    flood_risk_0_100 DOUBLE PRECISION,
+    wildlife_risk_0_100 DOUBLE PRECISION,
+    road_risk_0_100 DOUBLE PRECISION,
+    overall_risk_0_100 DOUBLE PRECISION,
+    confidence_0_100 DOUBLE PRECISION,
+    trend TEXT DEFAULT 'STABLE' CHECK (trend IN ('STABLE', 'RISING', 'FALLING')),
+    data_origin TEXT NOT NULL DEFAULT 'SIMULATED_REPLAY',
+    source_status TEXT NOT NULL DEFAULT 'SYNTHETIC_NOT_LIVE',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Enable RLS
 ALTER TABLE public.safe_locations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.decision_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.synthetic_hazard_replay ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public read safe_locations" ON public.safe_locations FOR SELECT USING (true);
+CREATE POLICY "Public read synthetic_hazard_replay" ON public.synthetic_hazard_replay FOR SELECT USING (true);
 CREATE POLICY "Users can CRUD own decision_history" ON public.decision_history FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
 -- =============================================================================
@@ -142,3 +174,4 @@ CREATE POLICY "Users can CRUD own decision_history" ON public.decision_history F
 CREATE INDEX IF NOT EXISTS idx_crowd_verifications_segment_created ON public.crowd_verifications (segment_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_trips_user_created ON public.trips (user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_decision_history_trip_user ON public.decision_history (trip_id, user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_synthetic_hazard_replay_ts_seg ON public.synthetic_hazard_replay (timestamp, segment_id);

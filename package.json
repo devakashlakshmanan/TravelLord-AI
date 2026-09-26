@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "npx tsx scripts/test_action_resolution.mjs"
+    "test": "npx tsx scripts/test_action_resolution.mjs && npx tsx scripts/test_synthetic_replay.mjs",
+    "test:replay": "npx tsx scripts/test_synthetic_replay.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -23,6 +23,7 @@ export type RoadAccessibilityState =
 export type HazardType =
   | 'LANDSLIDE'
   | 'FLOOD'
+  | 'FLASH_FLOOD'
   | 'HEAVY_RAIN'
   | 'WILDLIFE'
   | 'ROAD_CLOSURE'
@@ -138,6 +139,8 @@ export interface CandidateEvaluation {
   confidence: number;
 }
 
+export type CandidateActionEvaluation = CandidateEvaluation;
+
 export interface RejectedAction {
   action: ActionType;
   routeOrTarget?: string;
@@ -168,6 +171,8 @@ export interface ActionDecisionResult {
   validUntil: string;
   recommendationSummary: string;
 }
+
+export type ActionResolutionResult = ActionDecisionResult;
 
 export interface ResolveActionParams {
   travelerState?: Partial<TravelerState>;

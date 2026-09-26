@@ -13,20 +13,28 @@ import {
   ChevronUp,
   Sparkles,
   Sliders,
-  Play
+  Play,
+  Activity,
+  Radio
 } from 'lucide-react';
 import { resolveProtectiveAction } from '@/lib/engine/actionResolution/actionResolutionEngine';
 import { DEMO_SCENARIOS, DemoScenario } from '@/lib/engine/actionResolution/scenarios';
+import { CandidateActionEvaluation } from '@/lib/engine/actionResolution/actionTypes';
+import { useReplay, ReplayControlBanner } from '@/lib/replay/replayState';
 import ProvenanceBadge from '@/components/ProvenanceBadge';
 
 export default function ActionResolverPage() {
+  const { currentSnapshot, currentTimestamp } = useReplay();
+  const [activeEngineMode, setActiveEngineMode] = useState<'REPLAY_TIMELINE' | 'SCENARIO_PRESETS'>('REPLAY_TIMELINE');
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>(DEMO_SCENARIOS[2].id);
   const [expandedAction, setExpandedAction] = useState<string | null>(null);
 
   const currentScenario: DemoScenario = DEMO_SCENARIOS.find(s => s.id === selectedScenarioId) || DEMO_SCENARIOS[2];
 
-  // Pure deterministic engine execution from scenarios.ts params
-  const decisionResult = resolveProtectiveAction(currentScenario.params);
+  // In Replay mode, decisions come directly from currentSnapshot.decisionResult; in Preset mode from scenarios.ts params
+  const decisionResult = activeEngineMode === 'REPLAY_TIMELINE'
+    ? currentSnapshot.decisionResult
+    : resolveProtectiveAction(currentScenario.params);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
@@ -45,8 +53,36 @@ export default function ActionResolverPage() {
           </p>
         </div>
 
-        <ProvenanceBadge origin="SIMULATED" source="scenarios.ts Engine Sandbox" />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveEngineMode('REPLAY_TIMELINE')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+              activeEngineMode === 'REPLAY_TIMELINE'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Real-Time Replay Mode</span>
+          </button>
+          <button
+            onClick={() => setActiveEngineMode('SCENARIO_PRESETS')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+              activeEngineMode === 'SCENARIO_PRESETS'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>Scenario Presets ({DEMO_SCENARIOS.length})</span>
+          </button>
+        </div>
       </div>
+
+      {/* Real-Time Replay Control Banner when in Replay Mode */}
+      {activeEngineMode === 'REPLAY_TIMELINE' && (
+        <ReplayControlBanner />
+      )}
 
       {/* Scenario Selector Tabs */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
@@ -127,7 +163,7 @@ export default function ActionResolverPage() {
             Why this decision was resolved:
           </div>
           <ul className="text-xs text-slate-300 space-y-1.5">
-            {decisionResult.reasons.map((r, i) => (
+            {decisionResult.reasons.map((r: string, i: number) => (
               <li key={i} className="flex items-start gap-2">
                 <span className="text-emerald-400 font-bold">•</span>
                 <span>{r}</span>
@@ -150,7 +186,7 @@ export default function ActionResolverPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-3.5">
-          {decisionResult.candidateEvaluations.map((cand) => {
+          {decisionResult.candidateEvaluations.map((cand: CandidateActionEvaluation) => {
             const isExpanded = expandedAction === cand.action;
             const isRec = cand.action === decisionResult.action;
             const isFeas = cand.feasible;

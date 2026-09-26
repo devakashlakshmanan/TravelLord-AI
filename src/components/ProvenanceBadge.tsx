@@ -7,7 +7,8 @@ export type DataOrigin =
   | 'MODELLED' 
   | 'HISTORICAL' 
   | 'COMMUNITY_REPORTED' 
-  | 'SIMULATED';
+  | 'SIMULATED'
+  | 'SIMULATED_REPLAY';
 
 interface ProvenanceBadgeProps {
   origin?: DataOrigin;
@@ -32,6 +33,12 @@ export default function ProvenanceBadge({
 }: ProvenanceBadgeProps) {
   const getBadgeStyle = () => {
     switch (origin) {
+      case 'SIMULATED_REPLAY':
+        return {
+          bg: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
+          icon: <Database className="w-3 h-3 text-amber-400 shrink-0" />,
+          label: 'SIMULATED REPLAY',
+        };
       case 'LIVE':
         return {
           bg: 'bg-emerald-50 text-emerald-800 border-emerald-200',

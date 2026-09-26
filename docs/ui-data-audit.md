@@ -14,6 +14,7 @@
 | **MODELLED** | Algorithmic, geospatial, or susceptibility index derived from database records. | GSI slope saturation records stored in Supabase `hazard_segments`. | Static susceptibility matrix combined with recency decay. |
 | **HISTORICAL** | Archived incident records, past hazard frequencies, or baseline facility registries. | Safe shelter capacity rosters, emergency directory contacts in `emergencyContacts.ts`. | Database record last verified date. |
 | **COMMUNITY_REPORTED** | Traveler/local observations submitted on the ground with peer verification state. | User submissions written directly to Supabase `crowd_verifications`. | Multi-user confirmation score ($\pm 0.05$ nudge, bounded $\pm 0.20$). |
+| **SIMULATED_REPLAY** | Deterministic temporal replay dataset stepping through multi-hazard progression. | Munnar → Valparai Synthetic Replay Dataset (S1–S6 from 06:00 to 18:00). | Real-time replay clock stepping through genuine dataset measurements with dynamic mathematical recalculation. |
 | **SIMULATED** | Demonstrative multi-hazard scenarios, what-if test fixtures, or training presets. | Munnar–Valparai Multi-Hazard Conflict scenario (`SCENARIO_3_SIGNATURE_CONFLICT` in `scenarios.ts`). | Explicitly labeled `SIMULATED DEMO`. |
 
 ---

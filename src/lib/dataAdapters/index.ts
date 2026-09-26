@@ -21,9 +21,13 @@ export type DataOrigin =
   | 'MODELLED' 
   | 'HISTORICAL' 
   | 'COMMUNITY_REPORTED' 
-  | 'SIMULATED';
+  | 'SIMULATED'
+  | 'SIMULATED_REPLAY';
 
 export type ProvenanceType = DataOrigin | 'AUTHORITATIVE' | 'CROWD' | 'MODELED';
+
+export { SyntheticReplayAdapter } from './syntheticReplayAdapter';
+export type { NormalizedCorridorTelemetry } from './syntheticReplayAdapter';
 
 export type HazardCategory = 'GEOTECHNICAL' | 'WILDLIFE' | 'SOCIAL_ROAD' | 'METEOROLOGICAL';
 
