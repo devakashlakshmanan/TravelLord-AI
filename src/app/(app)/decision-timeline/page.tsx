@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { DEMO_SCENARIOS } from '@/lib/engine/actionResolution/scenarios';
 import { resolveProtectiveAction } from '@/lib/engine/actionResolution/actionResolutionEngine';
-import { useReplay, ReplayControlBanner } from '@/lib/replay/replayState';
+import { useReplay, CurrentIntelligenceBanner } from '@/lib/replay/replayState';
 import ProvenanceBadge from '@/components/ProvenanceBadge';
 
 export default function DecisionTimelinePage() {
@@ -95,7 +95,7 @@ export default function DecisionTimelinePage() {
             }`}
           >
             <Activity className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Replay Progression ({timelineEvents.length})</span>
+            <span>State Transitions ({timelineEvents.length})</span>
           </button>
 
           <button
@@ -127,7 +127,7 @@ export default function DecisionTimelinePage() {
       {/* Mode 1: Synthetic Replay Progression Timeline */}
       {activeTab === 'REPLAY_TIMELINE' && (
         <div className="space-y-6">
-          <ReplayControlBanner />
+          <CurrentIntelligenceBanner showDetails={false} />
 
           <div className="space-y-4">
             {timelineEvents.map((evt, idx) => {

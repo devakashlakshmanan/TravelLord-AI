@@ -20,7 +20,7 @@ import {
 import { resolveProtectiveAction } from '@/lib/engine/actionResolution/actionResolutionEngine';
 import { DEMO_SCENARIOS, DemoScenario } from '@/lib/engine/actionResolution/scenarios';
 import { CandidateActionEvaluation } from '@/lib/engine/actionResolution/actionTypes';
-import { useReplay, ReplayControlBanner } from '@/lib/replay/replayState';
+import { useReplay, CurrentIntelligenceBanner } from '@/lib/replay/replayState';
 import ProvenanceBadge from '@/components/ProvenanceBadge';
 
 export default function ActionResolverPage() {
@@ -63,7 +63,7 @@ export default function ActionResolverPage() {
             }`}
           >
             <Activity className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Real-Time Replay Mode</span>
+            <span>Current Corridor Intelligence</span>
           </button>
           <button
             onClick={() => setActiveEngineMode('SCENARIO_PRESETS')}
@@ -79,9 +79,9 @@ export default function ActionResolverPage() {
         </div>
       </div>
 
-      {/* Real-Time Replay Control Banner when in Replay Mode */}
+      {/* Current Intelligence Status Banner */}
       {activeEngineMode === 'REPLAY_TIMELINE' && (
-        <ReplayControlBanner />
+        <CurrentIntelligenceBanner showDetails={false} />
       )}
 
       {/* Scenario Selector Tabs */}

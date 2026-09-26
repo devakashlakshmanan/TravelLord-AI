@@ -7,7 +7,7 @@ import { HazardSegment, SegmentEvaluation } from '@/lib/engine/types';
 import { Loader2, AlertTriangle, Layers, Compass, Activity, MapPin, Radio, Sliders } from 'lucide-react';
 import Link from 'next/link';
 import { evaluateSegment } from '@/lib/engine/hazardStateAdapter';
-import { useReplay, ReplayControlBanner } from '@/lib/replay/replayState';
+import { useReplay, CurrentIntelligenceBanner } from '@/lib/replay/replayState';
 import ProvenanceBadge from '@/components/ProvenanceBadge';
 
 const CorridorMap = dynamic(() => import('@/components/CorridorMap'), {
@@ -118,7 +118,7 @@ export default function MapPage() {
             }`}
           >
             <Activity className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Munnar Replay (S1–S6)</span>
+            <span>Munnar Corridor (S1–S6)</span>
           </button>
           <button
             onClick={() => setCorridorMode('WAYANAD_LIVE')}
@@ -134,9 +134,9 @@ export default function MapPage() {
         </div>
       </div>
 
-      {/* Replay Control Banner when in Replay Mode */}
+      {/* Current Intelligence Banner when in Munnar Corridor Mode */}
       {corridorMode === 'MUNNAR_REPLAY' && (
-        <ReplayControlBanner />
+        <CurrentIntelligenceBanner showDetails={false} />
       )}
 
       {error && (

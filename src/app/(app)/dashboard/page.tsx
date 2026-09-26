@@ -8,7 +8,7 @@ import { HazardSegment } from '@/lib/engine/types';
 import { resolveProtectiveAction } from '@/lib/engine/actionResolution/actionResolutionEngine';
 import { HazardState, RoadState, ActionDecisionResult } from '@/lib/engine/actionResolution/actionTypes';
 import ProvenanceBadge from '@/components/ProvenanceBadge';
-import { useReplay, ReplayControlBanner } from '@/lib/replay/replayState';
+import { useReplay, CurrentIntelligenceBanner } from '@/lib/replay/replayState';
 import { 
   Shield, 
   LogOut, 
@@ -325,21 +325,20 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Interactive Synthetic Replay Control Banner */}
-      <ReplayControlBanner />
-
-      {/* Operational Highlights Card - Pure Deterministic Engine Output */}
-      {liveCorridorDecision ? (
+      {/* Contextual Current Intelligence Area */}
+      {corridorChoice === 'MUNNAR_VALPARAI' ? (
+        <CurrentIntelligenceBanner />
+      ) : liveCorridorDecision ? (
         <div className="p-6 rounded-2xl bg-slate-900 text-white shadow-md border border-slate-800 space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-emerald-400" />
               <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-400">
-                {corridorChoice === 'MUNNAR_VALPARAI' ? 'Real-Time Replay Corridor Directive' : 'Active Corridor Directive'}
+                Active NH-766 Corridor Directive
               </span>
               <ProvenanceBadge 
-                origin={corridorChoice === 'MUNNAR_VALPARAI' ? 'SIMULATED_REPLAY' : 'MODELLED'} 
-                source={corridorChoice === 'MUNNAR_VALPARAI' ? 'Synthetic Replay Dataset' : 'Verified Corridor Baseline'} 
+                origin="MODELLED" 
+                source="Verified Corridor Baseline" 
               />
             </div>
             <div className="flex items-center gap-3 text-xs font-mono">
@@ -354,43 +353,31 @@ export default function DashboardPage() {
             <div>
               <div className="text-slate-400 text-[11px]">Overall Risk</div>
               <div className={`text-base font-extrabold ${
-                (corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.corridorRisk : (liveCorridorDecision.riskScore * 100)) >= 70
+                (liveCorridorDecision.riskScore * 100) >= 70
                   ? 'text-rose-400'
-                  : (corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.corridorRisk : (liveCorridorDecision.riskScore * 100)) >= 40
+                  : (liveCorridorDecision.riskScore * 100) >= 40
                   ? 'text-amber-400'
                   : 'text-emerald-400'
               }`}>
-                {corridorChoice === 'MUNNAR_VALPARAI' 
-                  ? `${currentSnapshot.corridorRisk} / 100`
-                  : `${(liveCorridorDecision.riskScore * 100).toFixed(0)} / 100`}
+                {(liveCorridorDecision.riskScore * 100).toFixed(0)} / 100
               </div>
             </div>
             <div>
               <div className="text-slate-400 text-[11px]">Risk Trend</div>
-              <div className={`text-base font-extrabold ${
-                (corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.corridorTrend : 'STABLE') === 'RISING'
-                  ? 'text-rose-400'
-                  : 'text-slate-200'
-              }`}>
-                {corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.corridorTrend : 'STABLE'}
+              <div className="text-base font-extrabold text-slate-200">
+                STABLE
               </div>
             </div>
             <div>
               <div className="text-slate-400 text-[11px]">Corridor Road State</div>
-              <div className={`text-base font-extrabold ${
-                (corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.roadStateSummary : 'OPEN') === 'BLOCKED'
-                  ? 'text-rose-400'
-                  : (corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.roadStateSummary : 'OPEN') === 'RESTRICTED'
-                  ? 'text-amber-400'
-                  : 'text-emerald-400'
-              }`}>
-                {corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.roadStateSummary : 'OPEN'}
+              <div className="text-base font-extrabold text-emerald-400">
+                OPEN
               </div>
             </div>
             <div>
               <div className="text-slate-400 text-[11px]">Primary Hazard</div>
               <div className="text-xs font-semibold text-slate-200 truncate mt-1">
-                {corridorChoice === 'MUNNAR_VALPARAI' ? currentSnapshot.primaryHazard : 'Geotechnical Slope Alert'}
+                Geotechnical Slope Alert
               </div>
             </div>
           </div>
